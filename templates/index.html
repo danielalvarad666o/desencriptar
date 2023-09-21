@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Consulta de Mensajes</title>
+    <!-- Agrega la referencia al archivo CSS de Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Consulta de Mensajes</h1>
+        
+        {% if mensajedealerta %}
+        <h2 class="mt-5">{{ mensajedealerta }}</h2>
+        {% endif %}
+        
+    
+        
+        <!-- Agrega un formulario para enviar el mensaje encriptado -->
+        <form method="POST" action="/encrypt_server" class="mt-4">
+            <div class="mb-3">
+                <label for="mensajeEncriptado" class="form-label">Mensaje Encriptado:</label>
+                <input type="text" class="form-control" id="mensajeEncriptado" name="mensaje_encriptado" readonly value="{{ mensaje_desencriptado }}">
+            </div>
+            <button type="submit" class="btn btn-primary">Desencriptar Mensaje</button>
+        </form>
+    </div>
+</body>
+</html>
