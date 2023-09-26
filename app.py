@@ -17,7 +17,7 @@ def leerclave():
 
 # Configura la conexión a la base de datos MySQL
 db = mysql.connector.connect(
-    host="127.0.0.1",
+    host="192.168.1.17",
     user="root",
     password="",
     database="encrypt"
@@ -26,10 +26,16 @@ db = mysql.connector.connect(
 def desencriptar_mensaje(mensaje):
     clave_temporal = leerclave()
     if (clave_temporal!=""):
-      f = Fernet(clave_temporal)
-      mensaje_desencriptado = f.decrypt(mensaje)
-      mensaje_desencriptado_str = mensaje_desencriptado.decode()
-      return mensaje_desencriptado_str
+        try:
+            f = Fernet(clave_temporal)
+            mensaje_desencriptado = f.decrypt(mensaje)
+            mensaje_desencriptado_str = mensaje_desencriptado.decode()
+            return mensaje_desencriptado_str
+        except Exception as e:
+            # Capturamos y manejamos la excepción
+            mensaje_desencriptado_str="la llave es incorrecta"
+            return mensaje_desencriptado_str
+            
     else:
        mensaje_desencriptado_str=""
        return mensaje_desencriptado_str
@@ -39,6 +45,7 @@ def index():
     cursor = db.cursor()
     consulta=cursor.execute("SELECT mensaje_encriptado FROM mensajes ORDER BY id DESC LIMIT 1")
     ultimo_mensaje = cursor.fetchone()
+    print(ultimo_mensaje)
     cursor.close()
     mensaje_desencriptado = ""
     
@@ -62,9 +69,14 @@ def index():
 def encrypt_server():
     try:
         mensaje_encriptado = request.form.get('mensaje_encriptado')
+        respaldo= request.form.get('mensaje_encriptado')
         mensaje_desencriptado = desencriptar_mensaje(mensaje_encriptado)
         if mensaje_desencriptado=="":
-            return render_template('index.html', mensaje_desencriptado=mensaje_encriptado,mensajedealerta="no tienes la llave")
+            
+             return render_template('index.html', mensaje_desencriptado=mensaje_encriptado,mensajedealerta="no tienes la llave")
+        elif  mensaje_desencriptado=="la llave es incorrecta": 
+             
+             return render_template('index.html', mensaje_desencriptado=mensaje_encriptado,mensajedealerta="la llave es incorrecta")   
         else:
          return render_template('index.html', mensaje_desencriptado=mensaje_desencriptado)
     except Exception as e:
@@ -72,7 +84,12 @@ def encrypt_server():
         return render_template('index.html', mensaje_desencriptado=mensaje_encriptado)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8080)
+    app.run(host='192.168.1.17', port=8080, debug=True)
+    
+    #example
+    # if __name__ == '__main__':
+    # app.run(host='192.168.1.17', port=8080, debug=True)
+
 
 
 
