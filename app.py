@@ -1,7 +1,6 @@
 import os
 from flask import Flask, render_template, request, flash, redirect, jsonify
-import asyncio
-import websockets
+import requests
 
 from cryptography.fernet import Fernet
 import mysql.connector
@@ -22,7 +21,7 @@ db = mysql.connector.connect(
     host="127.0.0.1",
     user="root",
     password="",
-    database="encrypt"
+    database="encriptacion"
 )
 
 def desencriptar_mensaje(mensaje):
@@ -46,24 +45,33 @@ websocket_clients = set()
 
 @app.route('/')
 def index():
-    cursor = db.cursor()
-    consulta= cursor.execute("SELECT mensaje_encriptado FROM mensajes ORDER BY id DESC LIMIT 1")
+    # cursor = db.cursor()
+    # consulta= cursor.execute("SELECT * FROM mensajes ORDER BY id DESC LIMIT 1")
     
-    ultimo_mensaje = cursor.fetchone()
-    print(ultimo_mensaje)
-    cursor.close()
+    # ultimo_mensaje = cursor.fetchone()
+    
+    response = requests.get('http://25.6.197.168:8000/api/ultimo-mensaje')
+    response.raise_for_status()  # Lanza una excepción si la solicitud falla
+
+        # Obtiene el JSON de la respuesta
+    json_data = response.json()
+
+    ultimo_mensaje = json_data.get('Mensaje', '')
+    print (ultimo_mensaje)
+    print("*"*10)
+    
+    # print(ultimo_mensaje)
+    # cursor.close()
     mensaje_desencriptado = ""
     
     if ultimo_mensaje:
         try:
-            mensaje_encriptado = ultimo_mensaje[0]
-            cadena_sin_comillas = mensaje_encriptado.strip("()")
-            mensaje_desencriptado = ultimo_mensaje
-            desencriptar_mensaje(cadena_sin_comillas)
+            
+            desencriptar_mensaje(ultimo_mensaje)
         except Exception as e:
             mensaje_desencriptado = f"Error al desencriptar el mensaje: {str(e)}"
         
-    return render_template('index.html', mensaje_desencriptado=cadena_sin_comillas)
+    return render_template('index.html', mensaje_desencriptado=ultimo_mensaje)
 
 def genera_Clave(clave):
     print(clave)
@@ -80,16 +88,9 @@ def encrypt_server():
         mensaje_encriptado = request.form.get('mensaje_encriptado')
         respaldo= request.form.get('mensaje_encriptado')
         clave=request.files.get('archivo_clave')
-        print(request.files)
-
-        
-     
-        
+        print(request.files)     
         if clave:
-        
           clave_content = clave.read()
-    
-    
           clave_str = clave_content.decode('utf-8')
     
     
@@ -119,11 +120,9 @@ def encrypt_server():
         return render_template('index.html', mensaje_desencriptado=mensaje_encriptado)
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=8080, debug=True)
+    app.run(host='127.0.0.1', port=8081, debug=True)
     
-    #example
-    # if __name__ == '__main__':
-    # app.run(host='192.168.1.17', port=8080, debug=True)
+   
 
 
 
