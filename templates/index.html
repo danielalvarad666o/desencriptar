@@ -12,15 +12,18 @@
         {% if mensajedealerta %}
         <h2 class="mt-5">{{ mensajedealerta }}</h2>
         {% endif %}
-        
     
-        
         <!-- Agrega un formulario para enviar el mensaje encriptado -->
-        <form method="POST" action="/encrypt_server" class="mt-4">
+        <form method="POST" action="/encrypt_server" class="mt-4" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="mensajeEncriptado" class="form-label">Mensaje Encriptado:</label>
                 <input type="text" class="form-control" id="mensajeEncriptado" name="mensaje_encriptado" readonly value="{{ mensaje_desencriptado }}">
             </div>
+            <div class="mb-3">
+                <label for="archivoClave" class="form-label">Cargar archivo .key:</label>
+                <input type="file" class="form-control" id="archivoClave" name="archivo_clave" accept=".key">
+            </div>
+            
             <button type="submit" class="btn btn-primary">Desencriptar Mensaje</button>
         </form>
     </div>

@@ -1,5 +1,7 @@
 import os
 from flask import Flask, render_template, request, flash, redirect, jsonify
+import asyncio
+import websockets
 
 from cryptography.fernet import Fernet
 import mysql.connector
@@ -17,7 +19,7 @@ def leerclave():
 
 # Configura la conexión a la base de datos MySQL
 db = mysql.connector.connect(
-    host="192.168.1.17",
+    host="127.0.0.1",
     user="root",
     password="",
     database="encrypt"
@@ -39,11 +41,14 @@ def desencriptar_mensaje(mensaje):
     else:
        mensaje_desencriptado_str=""
        return mensaje_desencriptado_str
+   
+websocket_clients = set()
 
 @app.route('/')
 def index():
     cursor = db.cursor()
-    consulta=cursor.execute("SELECT mensaje_encriptado FROM mensajes ORDER BY id DESC LIMIT 1")
+    consulta= cursor.execute("SELECT mensaje_encriptado FROM mensajes ORDER BY id DESC LIMIT 1")
+    
     ultimo_mensaje = cursor.fetchone()
     print(ultimo_mensaje)
     cursor.close()
@@ -60,7 +65,11 @@ def index():
         
     return render_template('index.html', mensaje_desencriptado=cadena_sin_comillas)
 
-
+def genera_Clave(clave):
+    print(clave)
+    print("*"*10)
+    with open("Clave.key", "wb") as archivo_clave:
+        archivo_clave.write(clave)
 
 
 
@@ -70,6 +79,32 @@ def encrypt_server():
     try:
         mensaje_encriptado = request.form.get('mensaje_encriptado')
         respaldo= request.form.get('mensaje_encriptado')
+        clave=request.files.get('archivo_clave')
+        print(request.files)
+
+        
+     
+        
+        if clave:
+        
+          clave_content = clave.read()
+    
+    
+          clave_str = clave_content.decode('utf-8')
+    
+    
+          clave_str = clave_str.strip("b")
+          clave_str = clave_str.strip("''")
+    
+    
+          print(clave_str)
+          clave=clave_str
+        
+          #genera_Clave(clave)
+          with open('Clave.key', 'wb') as archivo_clave:
+            archivo_clave.write(clave_content)
+          #clave.save('Clave.key')
+        
         mensaje_desencriptado = desencriptar_mensaje(mensaje_encriptado)
         if mensaje_desencriptado=="":
             
@@ -84,7 +119,7 @@ def encrypt_server():
         return render_template('index.html', mensaje_desencriptado=mensaje_encriptado)
 
 if __name__ == '__main__':
-    app.run(host='192.168.1.17', port=8080, debug=True)
+    app.run(host='127.0.0.1', port=8080, debug=True)
     
     #example
     # if __name__ == '__main__':
